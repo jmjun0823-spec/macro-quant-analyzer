@@ -1,14 +1,8 @@
-"""
-데이터 수집 모듈: 국내외 주가지수, 금리, 환율, 수급 데이터 자동 파싱
-"""
-import pandas as pd
-import numpy as np
-import yfinance as yf
 from pykrx import stock
 import requests
 from typing import Dict, Tuple
+import pandas as pd
 from config import START_DATE, END_DATE, US_TICKERS, ECOS_API_KEY
-
 
 class MacroDataCollector:
     def __init__(self, start_date: str = START_DATE, end_date: str = END_DATE):
@@ -22,22 +16,22 @@ class MacroDataCollector:
         if 'Adj Close' in df.columns:
             data = df['Adj Close']
         else:
-            data = df['Close']]
+            data = df['Close']
         data.rename(columns={v: k for k, v in tickers.items()}, inplace=True)
         return data
 
     def fetch_kr_market_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """PyKRX를 활용한 국내 지수 및 투자자별(개인/기관/외국인) 수급 데이터 수집"""
+        """PyKRX를 활용한 국내 지수 및 투자자(개인/기관/외국인) 수급 데이터 수집"""
         print(f"[INFO] 한국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
         start = self.start_date.replace("-", "")
         end = self.end_date.replace("-", "")
-        
+
         # KOSPI 지수 데이터
         kospi_df = stock.get_index_ohlcv_by_date(start, end, "1001")
-        
+
         # 투자자별 순매수 데이터
-        investor_df = stock.get_index_investor_net_purchases_of_equities_by_ticker(start, end, "1001")
-        
+        investor_df = stock.get_index_investor_net_purchases_of_equities_by_date(start, end, "1001")
+
         return kospi_df, investor_df
 
     def fetch_ecos_indicator(self, stat_code: str, item_code: str, api_key: str = ECOS_API_KEY) -> pd.DataFrame:
@@ -45,7 +39,7 @@ class MacroDataCollector:
         start_m = self.start_date[:7].replace("-", "")
         end_m = self.end_date[:7].replace("-", "")
         url = f"http://ecos.bok.or.kr/api/StatisticSearch/{api_key}/json/kr/1/1000/{stat_code}/M/{start_m}/{end_m}/{item_code}/"
-        
+
         try:
             response = requests.get(url).json()
             rows = response['StatisticSearch']['row']
@@ -57,7 +51,6 @@ class MacroDataCollector:
         except Exception as e:
             print(f"[WARN] ECOS API 수집 실패: {e}")
             return pd.DataFrame()
-
 
 if __name__ == "__main__":
     collector = MacroDataCollector()
@@ -73,4 +66,3 @@ if __name__ == "__main__":
     print(kospi_df.tail())
     print("--- 투자자별 순매수 데이터 ---")
     print(investor_df.tail())
-
