@@ -15,14 +15,15 @@ START_DATE = "2023-01-01"
 END_DATE = datetime.today().strftime("%Y-%m-%d")
 
 # 주요 자산 티커 설정
+# US_TICKERS나 별도의 딕셔너리에 코스피 지수 추가 예시
 US_TICKERS = {
+    "KOSPI": "^KS11",  # <-- 이 부분을 추가해 줍니다.
+    "SOXX": "SOXX",
     "S&P500": "^GSPC",
     "NASDAQ": "^IXIC",
-    "VIX": "^VIX",
     "US10Y": "^TNX",
-    "SOXX": "SOXX"
+    "VIX": "^VIX"
 }
-
 KR_TICKERS = {
     "KOSPI": "1001",
     "KOSDAQ": "2001",
