@@ -25,20 +25,21 @@ class MacroDataCollector:
         """PyKRX를 활용한 국내 지수 및 투자자(개인/기관/외국인) 수급 데이터 수집"""
         print(f"[INFO] 한국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
         start = self.start_date.replace("-", "")
-        end = self.end_date.replace("-", "")
+        try:
+            # KOSPI 지수 데이터
+            kospi_df = stock.get_index_ohlcv_by_date(start, end, "1001")
+        except Exception as e:
+            print(f"[WARN] KOSPI 지수 수집 실패: {e}")
+            kospi_df = pd.DataFrame()
 
-        # KOSPI 지수 데이터
-        kospi_df = stock.get_index_ohlcv_by_date(start, end, "1001")
-
-        # 투자자별 순매수 데이터
-        investor_df = stock.get_index_investor_net_purchases_of_equities_by_date(start, end, "1001")
+        try:
+            # 투자자별 순매수 데이터
+            investor_df = stock.get_index_investor_net_purchases_of_equities_by_date(start, end, "1001")
+        except Exception as e:
+            print(f"[WARN] 투자자별 순매수 수집 실패: {e}")
+            investor_df = pd.DataFrame()
 
         return kospi_df, investor_df
-
-    def fetch_ecos_indicator(self, stat_code: str, item_code: str, api_key: str = ECOS_API_KEY) -> pd.DataFrame:
-        """한국은행 ECOS API를 통한 가계 DSR, 실질임금, 내수소비 지표 수집"""
-        start_m = self.start_date[:7].replace("-", "")
-        end_m = self.end_date[:7].replace("-", "")
         url = f"http://ecos.bok.or.kr/api/StatisticSearch/{api_key}/json/kr/1/1000/{stat_code}/M/{start_m}/{end_m}/{item_code}/"
 
         try:
