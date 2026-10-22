@@ -22,24 +22,25 @@ class MacroDataCollector:
         return data
 
     def fetch_kr_market_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """PyKRX를 활용한 국내 지수 및 투자자(개인/기관/외국인) 수급 데이터 수집"""
+        """PyKRX를 활용한 국내 지수 및 투자자별 수급 데이터 수집 (안전 장치 포함)"""
         print(f"[INFO] 한국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
         start = self.start_date.replace("-", "")
         end = self.end_date.replace("-", "")
 
+        kospi_df = pd.DataFrame()
+        investor_df = pd.DataFrame()
+
         try:
-            # KOSPI 지수 데이터
+            # KOSPI 지수 데이터 (티커 '1001')
             kospi_df = stock.get_index_ohlcv_by_date(start, end, "1001")
         except Exception as e:
             print(f"[WARN] KOSPI 지수 수집 실패: {e}")
-            kospi_df = pd.DataFrame()
 
         try:
-            # 투자자별 순매수 데이터
-            investor_df = stock.get_index_investor_net_purchases_of_equities_by_date(start, end, "1001")
+            # 시장 전체 투자자별 순매수 데이터 (KOSPI 시장 기준)
+            investor_df = stock.get_market_net_purchases_of_equities_by_date(start, end, "KOSPI")
         except Exception as e:
             print(f"[WARN] 투자자별 순매수 수집 실패: {e}")
-            investor_df = pd.DataFrame()
 
         return kospi_df, investor_df
 
