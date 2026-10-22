@@ -57,5 +57,16 @@ class MacroDataCollector:
 
 if __name__ == "__main__":
     collector = MacroDataCollector()
+    
+    # 1. 미국 데이터 확인
     us_data = collector.fetch_us_market_data()
+    print("--- 미국 시장 데이터 ---")
     print(us_data.tail())
+    
+    # 2. 한국 코스피 및 수급 데이터 확인
+    kospi_df, investor_df = collector.fetch_kr_market_data()
+    print("--- 코스피 지수 데이터 ---")
+    print(kospi_df.tail())
+    print("--- 투자자별 순매수 데이터 ---")
+    print(investor_df.tail())
+
