@@ -1,3 +1,4 @@
+import yfinance as yf
 from pykrx import stock
 import requests
 from typing import Dict, Tuple
