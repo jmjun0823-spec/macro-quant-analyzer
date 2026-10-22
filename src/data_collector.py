@@ -18,7 +18,11 @@ class MacroDataCollector:
     def fetch_us_market_data(self, tickers: Dict[str, str] = US_TICKERS) -> pd.DataFrame:
         """yfinance를 활용한 미국 주요 지수 및 10년물 국채 금리, VIX 수집"""
         print(f"[INFO] 미국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
-        data = yf.download(list(tickers.values()), start=self.start_date, end=self.end_date)['Adj Close']
+        df = yf.download(list(tickers.values()), start=self.start_date, end=self.end_date)
+        if 'Adj Close' in df.columns:
+            data = df['Adj Close']
+        else:
+            data = df['Close']]
         data.rename(columns={v: k for k, v in tickers.items()}, inplace=True)
         return data
 
