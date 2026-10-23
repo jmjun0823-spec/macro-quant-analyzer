@@ -73,13 +73,14 @@ if __name__ == "__main__":
             rolling_beta = calculate_rolling_beta(clean_data['KOSPI'], clean_data['S&P500'], window=5)
             print(rolling_beta.tail(5))
             
-        # 2. 바벨 포트폴리오 최적화 분석
-        print("\n[2] 바벨 포트폴리오 최적화 결과")
-        returns_df = market_data.pct_change().dropna()
-        if not returns_df.empty:
-            barbell_result = optimize_barbell_portfolio(returns_df)
-            for key, val in barbell_result.items():
-                print(f"  - {key}: {val}")
+        # 2. 바벨 포트폴리오 최적화 분석 (S&P500 & US10Y 2개 자산 선택)
+        print("\n[2] 바벨 포트폴리오 최적화 결과 (S&P500 vs US10Y)")
+        if 'S&P500' in market_data.columns and 'US10Y' in market_data.columns:
+            barbell_returns = market_data[['S&P500', 'US10Y']].pct_change().dropna()
+            if not barbell_returns.empty:
+                barbell_result = optimize_barbell_portfolio(barbell_returns)
+                for key, val in barbell_result.items():
+                    print(f"  - {key}: {val}")
                 
         print("\n" + "="*50)
         print(" [INFO] 모든 퀀트 분석 완료!")
