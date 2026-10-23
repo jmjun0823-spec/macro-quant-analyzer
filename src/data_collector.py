@@ -1,7 +1,6 @@
 import yfinance as yf
-from pykrx import stock
 import requests
-from typing import Dict, Tuple
+from typing import Dict
 import pandas as pd
 from config import START_DATE, END_DATE, US_TICKERS, ECOS_API_KEY
 
@@ -10,40 +9,22 @@ class MacroDataCollector:
         self.start_date = start_date
         self.end_date = end_date
 
-    def fetch_us_market_data(self, tickers: Dict[str, str] = US_TICKERS) -> pd.DataFrame:
-        """yfinance를 활용한 미국 주요 지수 및 10년물 국채 금리, VIX 수집"""
-        print(f"[INFO] 미국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
+    def fetch_market_data(self, tickers: Dict[str, str] = US_TICKERS) -> pd.DataFrame:
+        """yfinance를 활용해 코스피, 코스닥 및 글로벌 주요 지수 최근 1달 데이터 수집"""
+        print(f"[INFO] 국내외 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
         df = yf.download(list(tickers.values()), start=self.start_date, end=self.end_date)
+        
         if 'Adj Close' in df.columns:
             data = df['Adj Close']
         else:
             data = df['Close']
+            
+        # 티커 이름을 알아보기 쉽게 컬럼명으로 매핑
         data.rename(columns={v: k for k, v in tickers.items()}, inplace=True)
         return data
 
-    def fetch_kr_market_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """PyKRX를 활용한 국내 지수 및 투자자별 수급 데이터 수집 (CI 환경 대응 안전 장치 포함)"""
-        print(f"[INFO] 한국 증시 데이터 수집 중... ({self.start_date} ~ {self.end_date})")
-        start = self.start_date.replace("-", "")
-        end = self.end_date.replace("-", "")
-
-        kospi_df = pd.DataFrame()
-        investor_df = pd.DataFrame()
-
-        try:
-            kospi_df = stock.get_index_ohlcv_by_date(start, end, "1001")
-        except Exception as e:
-            print(f"[WARN] KOSPI 지수 수집 실패 (클라우드 환경 제한 가능성): {e}")
-
-        try:
-            investor_df = stock.get_market_net_purchases_of_equities_by_date(start, end, "KOSPI")
-        except Exception as e:
-            print(f"[WARN] 투자자별 순매수 수집 실패 (클라우드 환경 제한 가능성): {e}")
-
-        return kospi_df, investor_df
-
     def fetch_ecos_indicator(self, stat_code: str, item_code: str, api_key: str = ECOS_API_KEY) -> pd.DataFrame:
-        """한국은행 ECOS API를 통한 가계 DSR, 실질임금, 내수소비 지표 수집"""
+        """한국은행 ECOS API 거시경제 지표 수집"""
         start_m = self.start_date[:7].replace("-", "")
         end_m = self.end_date[:7].replace("-", "")
         url = f"http://ecos.bok.or.kr/api/StatisticSearch/{api_key}/json/kr/1/1000/{stat_code}/M/{start_m}/{end_m}/{item_code}/"
@@ -63,14 +44,7 @@ class MacroDataCollector:
 if __name__ == "__main__":
     collector = MacroDataCollector()
     
-    # 1. 미국 데이터 확인
-    us_data = collector.fetch_us_market_data()
-    print("--- 미국 시장 데이터 ---")
-    print(us_data.tail())
-    
-    # 2. 한국 코스피 및 수급 데이터 확인
-    kospi_df, investor_df = collector.fetch_kr_market_data()
-    print("--- 코스피 지수 데이터 ---")
-    print(kospi_df.tail())
-    print("--- 투자자별 순매수 데이터 ---")
-    print(investor_df.tail())
+    # 최근 1달간의 국내외 증시 데이터 수집 및 출력
+    market_data = collector.fetch_market_data()
+    print("--- 국내외 주요 증시 데이터 (최근 1달) ---")
+    print(market_data.tail(15))
