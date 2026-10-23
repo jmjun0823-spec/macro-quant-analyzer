@@ -44,6 +44,10 @@ class MacroDataCollector:
 if __name__ == "__main__":
     collector = MacroDataCollector()
     
+    # 판다스 출력 옵션을 늘려 생략되는 컬럼 없이 전부 출력
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1000)
+    
     # 최근 1달간의 국내외 증시 데이터 수집 및 출력
     market_data = collector.fetch_market_data()
     print("--- 국내외 주요 증시 데이터 (최근 1달) ---")
