@@ -9,7 +9,9 @@ ECOS_API_KEY = os.getenv("ECOS_API_KEY", "YOUR_ECOS_API_KEY")
 FRED_API_KEY = os.getenv("FRED_API_KEY", "YOUR_FRED_API_KEY")
 
 # 기본 분석 시작일 (3년 전 시점부터)
-START_DATE = "2023-01-01"
+# 오늘 날짜와 정확히 30일(1달) 전 날짜를 동적으로 계산
+END_DATE = datetime.today().strftime('%Y-%m-%d')
+START_DATE = (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d')
 
 # 실행 당일(오늘) 기준 날짜 자동 설정
 END_DATE = datetime.today().strftime("%Y-%m-%d")
