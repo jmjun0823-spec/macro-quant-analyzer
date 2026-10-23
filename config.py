@@ -2,7 +2,7 @@
 글로벌 파라미터 및 API 키 설정 (동적 날짜 적용)
 """
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ECOS (한국은행), OpenDART, FRED API 키
 ECOS_API_KEY = os.getenv("ECOS_API_KEY", "YOUR_ECOS_API_KEY")
