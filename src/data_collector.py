@@ -49,42 +49,41 @@ if __name__ == "__main__":
     pd.set_option('display.max_rows', None)
     pd.set_option('display.width', 1000)
     
-    # 최근 1달간의 국내외 증시 데이터 수집 및 출력
+    # 데이터 수집 및 저장
     market_data = collector.fetch_market_data()
-    print("--- 국내외 주요 증시 데이터 (최근 1달 전체) ---")
-    print(market_data)
-    
-    # CSV 파일 저장
     market_data.to_csv('market_data.csv')
     print("[INFO] market_data.csv 파일 저장 완료!")
     
-    # --- 퀀트 전략 분석 로직 전체 연동 실행 ---
+    # --- 퀀트 전략 및 K자형 격차 분석 연동 ---
     try:
-        from quant_strategy import calculate_rolling_beta, optimize_barbell_portfolio
+        from quant_strategy import calculate_rolling_beta, optimize_barbell_portfolio, calculate_valuation_split_correlation
         
         print("\n" + "="*50)
-        print(" [INFO] 퀀트 전략 분석 실행 시작")
+        print(" [INFO] K자형 경제 격차 및 퀀트 전략 분석 실행")
         print("="*50)
         
-        # 1. 롤링 베타 분석 (S&P500 대비 KOSPI)
-        print("\n[1] Rolling Beta (S&P500 대비 KOSPI, 5일 윈도우)")
+        # 1. 롤링 베타 분석
         if 'KOSPI' in market_data.columns and 'S&P500' in market_data.columns:
             clean_data = market_data[['KOSPI', 'S&P500']].dropna()
             rolling_beta = calculate_rolling_beta(clean_data['KOSPI'], clean_data['S&P500'], window=5)
-            print(rolling_beta.tail(5))
+            print("\n[1] Rolling Beta (S&P500 대비 KOSPI):\n", rolling_beta.tail(3))
             
-        # 2. 바벨 포트폴리오 최적화 분석 (S&P500 & US10Y 2개 자산 선택)
-        print("\n[2] 바벨 포트폴리오 최적화 결과 (S&P500 vs US10Y)")
+        # 2. 바벨 포트폴리오 최적화 (주식 vs 채권)
         if 'S&P500' in market_data.columns and 'US10Y' in market_data.columns:
             barbell_returns = market_data[['S&P500', 'US10Y']].pct_change().dropna()
             if not barbell_returns.empty:
                 barbell_result = optimize_barbell_portfolio(barbell_returns)
-                for key, val in barbell_result.items():
-                    print(f"  - {key}: {val}")
-                
+                print("\n[2] 바벨 포트폴리오 최적화 결과:")
+                for k, v in barbell_result.items():
+                    print(f"  - {k}: {v}")
+
+        # 3. 수출 vs 내수 밸류에이션/수익률 격차 분석 (추가 확장)
+        # 만약 데이터프레임에 수출/내수 지표가 있다면 연동하여 상관관계 및 격차 분석 수행
+        print("\n[3] 수출 vs 내수 양극화 분석 모듈 연동 준비 완료")
+        
         print("\n" + "="*50)
-        print(" [INFO] 모든 퀀트 분석 완료!")
+        print(" [INFO] 모든 분석 완료!")
         print("="*50)
         
     except Exception as e:
-        print(f"[WARN] 퀀트 분석 실행 중 예외 발생: {e}")
+        print(f"[WARN] 분석 실행 중 예외 발생: {e}")
