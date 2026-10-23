@@ -44,16 +44,29 @@ class MacroDataCollector:
 if __name__ == "__main__":
     collector = MacroDataCollector()
     
-    # 판다스 출력 옵션을 늘려 생략되는 컬럼과 행 없이 로그에 전부 출력
+    # 판다스 출력 옵션 설정
     pd.set_option('display.max_columns', None)
     pd.set_option('display.max_rows', None)
     pd.set_option('display.width', 1000)
     
     # 최근 1달간의 국내외 증시 데이터 수집 및 출력
     market_data = collector.fetch_market_data()
-    print("--- 국내외 주요 증시 데이터 (최근 1달 전체) ---")
+    print("--- 국내외 주요 증시 데이터 (최근 1달 전체 질) ---")
     print(market_data)
     
-    # GitHub Actions 환경에서도 데이터를 파일로 남겨 안전하게 확인할 수 있도록 CSV 저장
+    # CSV 파일 저장
     market_data.to_csv('market_data.csv')
     print("[INFO] market_data.csv 파일 저장 완료!")
+    
+    # --- [추가] quant_strategy.py 분석 로직 연동 실행 ---
+    try:
+        from quant_strategy import calculate_rolling_beta
+        print("\n--- 퀀트 전략 분석 결과 (Rolling Beta 예시) ---")
+        # 예시로 S&P500(^GSPC) 대비 코스피(KOSPI)의 5일 롤링 베타 계산
+        if 'KOSPI' in market_data.columns and 'S&P500' in market_data.columns:
+            # NaN 제거 후 계산
+            clean_data = market_data[['KOSPI', 'S&P500']].dropna()
+            rolling_beta = calculate_rolling_beta(clean_data['KOSPI'], clean_data['S&P500'], window=5)
+            print(rolling_beta.tail(5))
+    except Exception as e:
+        print(f"[WARN] 퀀트 분석 실행 중 예외 발생: {e}")
