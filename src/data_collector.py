@@ -51,22 +51,39 @@ if __name__ == "__main__":
     
     # 최근 1달간의 국내외 증시 데이터 수집 및 출력
     market_data = collector.fetch_market_data()
-    print("--- 국내외 주요 증시 데이터 (최근 1달 전체 질) ---")
+    print("--- 국내외 주요 증시 데이터 (최근 1달 전체) ---")
     print(market_data)
     
     # CSV 파일 저장
     market_data.to_csv('market_data.csv')
     print("[INFO] market_data.csv 파일 저장 완료!")
     
-    # --- [추가] quant_strategy.py 분석 로직 연동 실행 ---
+    # --- 퀀트 전략 분석 로직 전체 연동 실행 ---
     try:
-        from quant_strategy import calculate_rolling_beta
-        print("\n--- 퀀트 전략 분석 결과 (Rolling Beta 예시) ---")
-        # 예시로 S&P500(^GSPC) 대비 코스피(KOSPI)의 5일 롤링 베타 계산
+        from quant_strategy import calculate_rolling_beta, optimize_barbell_portfolio
+        
+        print("\n" + "="*50)
+        print(" [INFO] 퀀트 전략 분석 실행 시작")
+        print("="*50)
+        
+        # 1. 롤링 베타 분석 (S&P500 대비 KOSPI)
+        print("\n[1] Rolling Beta (S&P500 대비 KOSPI, 5일 윈도우)")
         if 'KOSPI' in market_data.columns and 'S&P500' in market_data.columns:
-            # NaN 제거 후 계산
             clean_data = market_data[['KOSPI', 'S&P500']].dropna()
             rolling_beta = calculate_rolling_beta(clean_data['KOSPI'], clean_data['S&P500'], window=5)
             print(rolling_beta.tail(5))
+            
+        # 2. 바벨 포트폴리오 최적화 분석
+        print("\n[2] 바벨 포트폴리오 최적화 결과")
+        returns_df = market_data.pct_change().dropna()
+        if not returns_df.empty:
+            barbell_result = optimize_barbell_portfolio(returns_df)
+            for key, val in barbell_result.items():
+                print(f"  - {key}: {val}")
+                
+        print("\n" + "="*50)
+        print(" [INFO] 모든 퀀트 분석 완료!")
+        print("="*50)
+        
     except Exception as e:
         print(f"[WARN] 퀀트 분석 실행 중 예외 발생: {e}")
