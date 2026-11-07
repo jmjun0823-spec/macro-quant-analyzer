@@ -1,0 +1,7 @@
+[file-tag: code-generated-file-ec14c473-6329-4f5e-9c87-5e8d8c4be5c2]
+```text
+yfinance>=0.2.30
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+scipy>=1.10.0
